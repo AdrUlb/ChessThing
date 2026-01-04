@@ -1,0 +1,7 @@
+namespace ChessLib;
+
+public static class Constants
+{
+	public const string InitialFen =
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+}
