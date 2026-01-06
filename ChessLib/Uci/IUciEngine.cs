@@ -2,23 +2,23 @@ namespace ChessLib.Uci;
 
 public interface IUciEngine
 {
-	public void UciUci();
+	public void Uci();
 
-	public void UciIsReady();
+	public void IsReady();
 
-	public void UciDebug(bool on);
+	public void Debug(bool debugOn);
 
-	public void UciSetOption(string name, string? value);
+	public void SetOption(string name, string? value);
 
 	public void UciNewGame();
 
-	public void UciPosition(string? fen, IReadOnlyList<BoardMove> moves);
+	public void Position(bool startPosition, string? fen, IReadOnlyList<BoardMove> moves);
 
-	public void UciGo(UciGoParameters parameters);
+	public void Go(UciGoParameters parameters);
 
-	public void UciStop();
+	public void Stop();
 
-	public void UciPonderHit();
+	public void PonderHit();
 
-	public void UciQuit();
+	public void Quit();
 }

@@ -3,190 +3,189 @@ using System.Text;
 
 namespace ChessLib.Uci;
 
-public sealed class UciEngineOutputWriter : IUciUserInterface
+public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeFunc) : IUciUserInterface
 {
-	public delegate void OutputHandler(string output);
-
-	public required OutputHandler Output { get; init; }
-
-	public void UciId(string name, string? author)
+	private sealed class CommandWriter(WriteFunc writeFunc)
 	{
-		Output("id name ");
-		Output(name);
-		Output("\n");
+		[ThreadStatic] private static StringBuilder? _builder;
 
-		if (author is not null)
+		private static StringBuilder Builder => _builder ??= new(256);
+
+		public WriteFunc WriteFunc { get; } = writeFunc;
+
+		public CommandWriter Append(string str)
 		{
-			Output("id author ");
-			Output(author);
-			Output("\n");
+			Builder.Append(str);
+			return this;
+		}
+
+		public CommandWriter Append(char ch)
+		{
+			Builder.Append(ch);
+			return this;
+		}
+
+		public CommandWriter Append(long value)
+		{
+			Builder.Append(value);
+			return this;
+		}
+
+		public CommandWriter Append(ulong value)
+		{
+			Builder.Append(value);
+			return this;
+		}
+
+		public CommandWriter AppendLine()
+		{
+			Builder.AppendLine();
+			return this;
+		}
+
+		public CommandWriter AppendLine(string str)
+		{
+			Builder.AppendLine(str);
+			return this;
+		}
+
+		public void Flush()
+		{
+			WriteFunc(Builder.ToString());
+			Builder.Clear();
 		}
 	}
 
-	public void UciUciOk() => Output("uciok\n");
+	public delegate void WriteFunc(string output);
 
-	public void ReadyOk() => Output("readyok\n");
+	private readonly CommandWriter _writer = new(writeFunc);
 
-	public void UciBestMove(BoardMove bestMove, BoardMove? ponderMove = null)
+	public void Id(string name, string? author)
 	{
-		Output("bestmove ");
-		Output(bestMove.ToUciString());
+		_writer
+			.Append("id name ").AppendLine(name);
+
+		if (author != null)
+			_writer.Append("id author ").AppendLine(author);
+
+		_writer.Flush();
+	}
+
+	public void UciOk() => _writer.AppendLine("uciok").Flush();
+
+	public void ReadyOk() => _writer.AppendLine("readyok").Flush();
+
+	public void BestMove(BoardMove bestMove, BoardMove? ponderMove = null)
+	{
+		_writer.Append("bestmove ").Append(bestMove.ToUciString());
 
 		if (ponderMove is { } pm && pm != BoardMove.Invalid)
 		{
-			Output(" ponder ");
-			Output(pm.ToUciString());
+			_writer.Append(" ponder ").Append(pm.ToUciString());
 		}
 
-		Output("\n");
+		_writer.AppendLine().Flush();
 	}
 
-	public void UciInfo(UciInfoParameters infoParameters)
+	public void Info(UciInfoParameters infoParameters)
 	{
-		Output("info");
+		_writer.Append("info");
 
 		if (infoParameters.SearchDepthPlies != -1)
 		{
-			Output(" depth ");
-			Output(infoParameters.SearchDepthPlies.ToString());
+			_writer.Append(" depth ").Append(infoParameters.SearchDepthPlies.ToString());
 		}
 
 		if (infoParameters.SelectiveSearchDepthPlies != -1)
 		{
-			Output(" seldepth ");
-			Output(infoParameters.SelectiveSearchDepthPlies.ToString());
+			_writer.Append(" seldepth ").Append(infoParameters.SelectiveSearchDepthPlies.ToString());
 		}
 
 		if (infoParameters.TimeSearchedMillis != -1)
 		{
-			Output(" time ");
-			Output(infoParameters.TimeSearchedMillis.ToString());
+			_writer.Append(" time ").Append(infoParameters.TimeSearchedMillis.ToString());
 		}
 
 		if (infoParameters.NumNodesSearched != -1)
 		{
-			Output(" nodes ");
-			Output(infoParameters.NumNodesSearched.ToString());
+			_writer.Append(" nodes ").Append(infoParameters.NumNodesSearched.ToString());
 		}
 
 		if (infoParameters.BestLine is { Count: > 0 })
 		{
-			Output(" pv");
+			_writer.Append(" pv");
 			foreach (var move in infoParameters.BestLine)
-			{
-				Output(" ");
-				Output(move.ToUciString());
-			}
-
+				_writer.Append(" ").Append(move.ToUciString());
 		}
 
 		if (infoParameters.MultiPv != -1)
-		{
-			Output(" multipv ");
-			Output(infoParameters.MultiPv.ToString());
-		}
+			_writer.Append(" multipv ").Append(infoParameters.MultiPv.ToString());
 
 		if (infoParameters.ScoreCp != -1 || infoParameters.ScoreMate != -1)
 		{
-			Output(" score");
+			_writer.Append(" score");
 			if (infoParameters.ScoreCp != -1)
-			{
-				Output(" cp ");
-				Output(infoParameters.ScoreCp.ToString());
-			}
+				_writer.Append(" cp ").Append(infoParameters.ScoreCp.ToString());
 
 			if (infoParameters.ScoreMate != -1)
-			{
-				Output(" mate ");
-				Output(infoParameters.ScoreMate.ToString());
-			}
+				_writer.Append(" mate ").Append(infoParameters.ScoreMate.ToString());
 
 			if (infoParameters.ScoreIsLowerBound)
-				Output(" lowerbound");
+				_writer.Append(" lowerbound");
 
 			if (infoParameters.ScoreIsUpperBound)
-				Output(" upperbound");
+				_writer.Append(" upperbound");
 		}
 
 		if (infoParameters.CurrentMove != BoardMove.Invalid)
-		{
-			Output(" currmove ");
-			Output(infoParameters.CurrentMove.ToUciString());
-		}
+			_writer.Append(" currmove ").Append(infoParameters.CurrentMove.ToUciString());
 
 		if (infoParameters.CurrentMoveNumber != -1)
-		{
-			Output(" currmovenumber ");
-			Output(infoParameters.CurrentMoveNumber.ToString());
-		}
+			_writer.Append(" currmovenumber ").Append(infoParameters.CurrentMoveNumber.ToString());
 
 		if (infoParameters.HashFullPermille != -1)
-		{
-			Output(" hashfull ");
-			Output(infoParameters.HashFullPermille.ToString());
-		}
+			_writer.Append(" hashfull ").Append(infoParameters.HashFullPermille.ToString());
 
 		if (infoParameters.NodesPerSecond != -1)
-		{
-			Output(" nps ");
-			Output(infoParameters.NodesPerSecond.ToString());
-		}
+			_writer.Append(" nps ").Append(infoParameters.NodesPerSecond.ToString());
 
 		if (infoParameters.EndgameTableHits != -1)
-		{
-			Output(" tbhits ");
-			Output(infoParameters.EndgameTableHits.ToString());
-		}
+			_writer.Append(" tbhits ").Append(infoParameters.EndgameTableHits.ToString());
 
 		if (infoParameters.CpuLoadPermille != -1)
-		{
-			Output(" cpuload ");
-			Output(infoParameters.CpuLoadPermille.ToString());
-		}
+			_writer.Append(" cpuload ").Append(infoParameters.CpuLoadPermille.ToString());
 
 		if (infoParameters.Refutation is { Count: > 0 })
 		{
 			Debug.Assert(infoParameters.Refutation.Count >= 2, "Refutation must contain at least the refuted move and one reply.");
 
-			Output(" refutation");
+			_writer.Append(" refutation");
 			foreach (var move in infoParameters.Refutation)
-			{
-				Output(" ");
-				Output(move.ToUciString());
-			}
+				_writer.Append(" ").Append(move.ToUciString());
 		}
 
 		if (infoParameters.CurrentLine is { Count: > 0 })
 		{
-			Output(" currline");
+			_writer.Append(" currline");
 			if (infoParameters.CurrentLineCpu != -1)
-			{
-				Output(" ");
-				Output(infoParameters.CurrentLineCpu.ToString());
-			}
+				_writer.Append(" ").Append(infoParameters.CurrentLineCpu.ToString());
 
 			foreach (var move in infoParameters.CurrentLine)
-			{
-				Output(" ");
-				Output(move.ToUciString());
-			}
+				_writer.Append(" ").Append(move.ToUciString());
 		}
 
 		if (!string.IsNullOrEmpty(infoParameters.String))
 		{
-			Output(" string ");
-			Output(infoParameters.String);
+			_writer.Append(" string ").Append(infoParameters.String);
 		}
 
-		Output("\n");
+		_writer.AppendLine().Flush();
 	}
 
-	public void UciOption(UciOption option)
+	public void Option(UciOption option)
 	{
-		Output("option name ");
-		Output(option.Name);
-		Output(" type ");
-		Output(option.Type switch
+		_writer.Append("option name ").Append(option.Name);
+		_writer.Append(" type ").Append(option.Type switch
 		{
 			UciOptionType.Check => "check",
 			UciOptionType.Spin => "spin",
@@ -197,32 +196,18 @@ public sealed class UciEngineOutputWriter : IUciUserInterface
 		});
 
 		if (option.DefaultValue != null)
-		{
-			Output(" default ");
-			Output(option.DefaultValue);
-		}
+			_writer.Append(" default ").Append(option.DefaultValue);
 
 		if (option.MinValue != null)
-		{
-			Output(" min ");
-			Output(option.MinValue);
-		}
+			_writer.Append(" min ").Append(option.MinValue);
 
 		if (option.MaxValue != null)
-		{
-			Output(" max ");
-			Output(option.MaxValue);
-		}
+			_writer.Append(" max ").Append(option.MaxValue);
 
 		if (option.Vars != null)
-		{
 			foreach (var v in option.Vars)
-			{
-				Output(" var ");
-				Output(v);
-			}
-		}
+				_writer.Append(" var ").Append(v);
 
-		Output("\n");
+		_writer.AppendLine().Flush();
 	}
 }

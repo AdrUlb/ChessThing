@@ -9,13 +9,14 @@ public class UciEngineInputParser(IUciEngine engine)
 		var arguments = splitIndex == -1 ? string.Empty : input[(splitIndex + 1)..];
 		command = command.Trim();
 		arguments = arguments.Trim();
+
 		switch (command)
 		{
 			case "uci":
-				engine.UciUci();
+				engine.Uci();
 				break;
 			case "isready":
-				engine.UciIsReady();
+				engine.IsReady();
 				break;
 			case "setoption":
 				{
@@ -43,7 +44,7 @@ public class UciEngineInputParser(IUciEngine engine)
 
 					}
 
-					engine.UciSetOption(name, value);
+					engine.SetOption(name, value);
 					break;
 				}
 			case "ucinewgame":
@@ -51,11 +52,12 @@ public class UciEngineInputParser(IUciEngine engine)
 				break;
 			case "position":
 				{
+					var startPos = false;
 					string? fen = null;
 					var args = arguments.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 					if (args[0] == "startpos")
 					{
-						fen = Constants.InitialFen;
+						startPos = true;
 						args = args[1..];
 					}
 					else if (args[0] == "fen")
@@ -82,27 +84,112 @@ public class UciEngineInputParser(IUciEngine engine)
 							moves.Add(move);
 					}
 
-					engine.UciPosition(fen, moves);
+					engine.Position(startPos, fen, moves);
 					break;
 				}
 			case "go":
 				{
-					if (UciGoParameters.TryParseUciString(arguments, out var goParams))
-						engine.UciGo(goParams);
+					var parameters = new UciGoParameters();
+					var tokens = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+					var i = 0;
+					while (i < tokens.Length)
+					{
+						switch (tokens[i])
+						{
+							case "searchmoves":
+								var moves = new List<BoardMove>();
+								i++;
+								while (i < tokens.Length && BoardMove.TryParseUciString(tokens[i], out var move))
+								{
+									moves.Add(move);
+									i++;
+								}
 
+								parameters.SearchMoves = moves;
+								continue;
+							case "ponder":
+								parameters.Ponder = true;
+								break;
+							case "wtime":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var wtime))
+									break;
+
+								parameters.WhiteTime = wtime;
+								i++;
+								break;
+							case "btime":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var btime))
+									break;
+
+								parameters.BlackTime = btime;
+								i++;
+								break;
+							case "winc":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var winc))
+									break;
+
+								parameters.WhiteIncrement = winc;
+								i++;
+								break;
+							case "binc":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var binc))
+									break;
+
+								parameters.BlackIncrement = binc;
+								i++;
+								break;
+							case "movestogo":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var movestogo))
+									break;
+
+								parameters.MovesToGo = movestogo;
+								i++;
+								break;
+							case "depth":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var depth))
+									break;
+
+								parameters.Depth = depth;
+								i++;
+								break;
+							case "nodes":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var nodes))
+									break;
+
+								parameters.Nodes = nodes;
+								i++;
+								break;
+							case "mate":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var mate))
+									break;
+
+								parameters.Mate = mate;
+								i++;
+								break;
+							case "movetime":
+								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var movetime))
+									break;
+
+								parameters.MoveTime = movetime;
+								i++;
+								break;
+							case "infinite":
+								parameters.Infinite = true;
+								break;
+						}
+					}
+
+					engine.Go(parameters);
 					break;
 				}
 			case "stop":
-				engine.UciStop();
+				engine.Stop();
 				break;
 			case "ponderhit":
-				engine.UciPonderHit();
+				engine.PonderHit();
 				break;
 			case "quit":
-				engine.UciQuit();
-				break;
-			default:
-				// Unknown command
+				engine.Quit();
 				break;
 		}
 	}

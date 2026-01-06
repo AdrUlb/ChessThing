@@ -2,15 +2,15 @@ namespace ChessLib.Uci;
 
 public interface IUciUserInterface
 {
-	public void UciId(string name, string author);
+	public void Id(string name, string? author);
 
-	public void UciUciOk();
+	public void UciOk();
 
 	public void ReadyOk();
 
-	public void UciBestMove(BoardMove bestMove, BoardMove? ponderMove = null);
+	public void BestMove(BoardMove bestMove, BoardMove? ponderMove = null);
 
-	public void UciInfo(UciInfoParameters infoParameters);
+	public void Info(UciInfoParameters infoParameters);
 	
-	public void UciOption(UciOption option);
+	public void Option(UciOption option);
 }
