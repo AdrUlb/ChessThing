@@ -1,4 +1,5 @@
-﻿using ChessLib.Uci;
+﻿using System.Diagnostics;
+using ChessLib.Uci;
 
 namespace ChessThing;
 
@@ -12,48 +13,46 @@ internal static class Program
 	{
 		var logFilePath = Path.Combine("Logs", $"{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.txt");
 		Directory.CreateDirectory("Logs");
-#if DEBUG
 		LogFile = File.AppendText(logFilePath);
-#endif
 	}
 
 	public static void Main(string[] args)
 	{
-
-		var output = new UciEngineOutputWriter(static str =>
+		try
 		{
-#if DEBUG
-			Log(string.Join("\n", str.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(str => "< " + str)));
-#endif
-			Console.Write(str);
-		});
-
-		var engine = new Engine(output);
-		var reader = new UciEngineInputParser(engine);
-
-		var inputThread = new Thread(() =>
-		{
-			while (!engine.IsQuitting)
+			var output = new UciEngineOutputWriter(static str =>
 			{
-				var input = Console.ReadLine();
-				if (input == null)
-					continue;
+				Log(string.Join("\n", str.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(str => "O: " + str)));
+				Console.Write(str);
+			});
+			
+			Task.Run(() =>
+			{
+				using var engine = new Engine(output);
+				var reader = new UciEngineInputParser(engine);
 
-#if DEBUG
-				Log($"> {input}");
-#endif
-				reader.Parse(input);
-			}
-		});
+				while (!engine.IsQuitting)
+				{
+					var input = Console.ReadLine();
+					if (input == null)
+						break;
 
-		inputThread.Start();
-
-		inputThread.Join();
-		LogFile.Flush();
+					Log($"I: {input}");
+					reader.Parse(input);
+				}
+			}).Wait();
+		}
+		finally
+		{
+			LogFile.Flush();
+		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void Log(string message)
 	{
+		var timestamp = DateTime.UtcNow.ToString("HH:mm:ss.fff");
+		message = $"[{timestamp}] {message}";
 		LogFile.WriteLine(message);
 		LogFile.Flush();
 	}

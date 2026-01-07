@@ -18,6 +18,9 @@ public class UciEngineInputParser(IUciEngine engine)
 			case "isready":
 				engine.IsReady();
 				break;
+			case "debug":
+				engine.Debug(arguments.Equals("on", StringComparison.InvariantCultureIgnoreCase));
+				break;
 			case "setoption":
 				{
 					var garbage = "";
@@ -134,7 +137,7 @@ public class UciEngineInputParser(IUciEngine engine)
 								parameters.BlackIncrement = binc;
 								break;
 							case "movestogo":
-								if (++i >= tokens.Length || !int.TryParse(tokens[i++], out var movestogo))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var movestogo))
 									break;
 
 								parameters.MovesToGo = movestogo;

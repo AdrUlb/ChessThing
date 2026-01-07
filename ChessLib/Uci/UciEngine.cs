@@ -9,17 +9,19 @@ public abstract class UciEngine(IUciUserInterface userInterface) : IUciEngine
 	protected abstract IReadOnlyList<UciOption> Options { get; }
 
 	public bool IsDebug { get; private set; }
+	
+	protected readonly IUciUserInterface UserInterface = userInterface;
 
 	void IUciEngine.Uci()
 	{
-		userInterface.Id(Name, Author);
+		UserInterface.Id(Name, Author);
 		foreach (var option in Options)
-			userInterface.Option(option);
+			UserInterface.Option(option);
 
-		userInterface.UciOk();
+		UserInterface.UciOk();
 	}
 
-	void IUciEngine.IsReady() => userInterface.ReadyOk();
+	void IUciEngine.IsReady() => UserInterface.ReadyOk();
 
 	void IUciEngine.Debug(bool debugOn)
 	{

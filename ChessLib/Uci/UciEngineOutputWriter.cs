@@ -116,17 +116,17 @@ public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeF
 				_writer.Append(" ").Append(move.ToUciString());
 		}
 
-		if (infoParameters.MultiPv != -1)
-			_writer.Append(" multipv ").Append(infoParameters.MultiPv.ToString());
+		if (infoParameters.MultiLine != -1)
+			_writer.Append(" multipv ").Append(infoParameters.MultiLine.ToString());
 
-		if (infoParameters.ScoreCp != -1 || infoParameters.ScoreMate != -1)
+		if (infoParameters.ScoreCp != null || infoParameters.ScoreMate != null)
 		{
 			_writer.Append(" score");
-			if (infoParameters.ScoreCp != -1)
-				_writer.Append(" cp ").Append(infoParameters.ScoreCp.ToString());
+			if (infoParameters.ScoreCp != null)
+				_writer.Append(" cp ").Append(infoParameters.ScoreCp.Value.ToString());
 
-			if (infoParameters.ScoreMate != -1)
-				_writer.Append(" mate ").Append(infoParameters.ScoreMate.ToString());
+			if (infoParameters.ScoreMate != null)
+				_writer.Append(" mate ").Append(infoParameters.ScoreMate.Value.ToString());
 
 			if (infoParameters.ScoreIsLowerBound)
 				_writer.Append(" lowerbound");

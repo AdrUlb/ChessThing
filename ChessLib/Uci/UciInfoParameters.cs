@@ -27,13 +27,13 @@ public readonly struct UciInfoParameters()
 
 	// For multi-PV mode (1-based index of the line being reported)
 	// multipv <num>
-	public int MultiPv { get; init; } = -1;
+	public int MultiLine { get; init; } = -1;
 
 	// Score
 	// score cp <x> [lowerbound | upperbound]
 	// score mate <x> [lowerbound | upperbound]
-	public int ScoreCp { get; init; } = -1; // Centipawn score
-	public int ScoreMate { get; init; } = -1; // Mate in N moves
+	public int? ScoreCp { get; init; } = null; // Centipawn score
+	public int? ScoreMate { get; init; } = null; // Mate in N moves
 	public bool ScoreIsLowerBound { get; init; } = false; // True if the score is only a lower bound
 	public bool ScoreIsUpperBound { get; init; } = false; // True if the score is only an upper bound
 
