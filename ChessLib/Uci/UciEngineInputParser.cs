@@ -94,11 +94,10 @@ public class UciEngineInputParser(IUciEngine engine)
 					var i = 0;
 					while (i < tokens.Length)
 					{
-						switch (tokens[i])
+						switch (tokens[i++])
 						{
 							case "searchmoves":
 								var moves = new List<BoardMove>();
-								i++;
 								while (i < tokens.Length && BoardMove.TryParseUciString(tokens[i], out var move))
 								{
 									moves.Add(move);
@@ -111,67 +110,58 @@ public class UciEngineInputParser(IUciEngine engine)
 								parameters.Ponder = true;
 								break;
 							case "wtime":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var wtime))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var wtime))
 									break;
 
 								parameters.WhiteTime = wtime;
-								i++;
 								break;
 							case "btime":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var btime))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var btime))
 									break;
 
 								parameters.BlackTime = btime;
-								i++;
 								break;
 							case "winc":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var winc))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var winc))
 									break;
 
 								parameters.WhiteIncrement = winc;
-								i++;
 								break;
 							case "binc":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var binc))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var binc))
 									break;
 
 								parameters.BlackIncrement = binc;
-								i++;
 								break;
 							case "movestogo":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var movestogo))
+								if (++i >= tokens.Length || !int.TryParse(tokens[i++], out var movestogo))
 									break;
 
 								parameters.MovesToGo = movestogo;
-								i++;
 								break;
 							case "depth":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var depth))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var depth))
 									break;
 
 								parameters.Depth = depth;
-								i++;
 								break;
 							case "nodes":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var nodes))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var nodes))
 									break;
 
 								parameters.Nodes = nodes;
-								i++;
 								break;
 							case "mate":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var mate))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var mate))
 									break;
 
 								parameters.Mate = mate;
-								i++;
 								break;
 							case "movetime":
-								if (i + 1 >= tokens.Length || !int.TryParse(tokens[i + 1], out var movetime))
+								if (i >= tokens.Length || !int.TryParse(tokens[i++], out var movetime))
 									break;
 
 								parameters.MoveTime = movetime;
-								i++;
 								break;
 							case "infinite":
 								parameters.Infinite = true;

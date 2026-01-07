@@ -11,8 +11,6 @@ public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeF
 
 		private static StringBuilder Builder => _builder ??= new(256);
 
-		public WriteFunc WriteFunc { get; } = writeFunc;
-
 		public CommandWriter Append(string str)
 		{
 			Builder.Append(str);
@@ -49,9 +47,9 @@ public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeF
 			return this;
 		}
 
-		public void Flush()
+		public void Write()
 		{
-			WriteFunc(Builder.ToString());
+			writeFunc(Builder.ToString());
 			Builder.Clear();
 		}
 	}
@@ -68,12 +66,12 @@ public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeF
 		if (author != null)
 			_writer.Append("id author ").AppendLine(author);
 
-		_writer.Flush();
+		_writer.Write();
 	}
 
-	public void UciOk() => _writer.AppendLine("uciok").Flush();
+	public void UciOk() => _writer.AppendLine("uciok").Write();
 
-	public void ReadyOk() => _writer.AppendLine("readyok").Flush();
+	public void ReadyOk() => _writer.AppendLine("readyok").Write();
 
 	public void BestMove(BoardMove bestMove, BoardMove? ponderMove = null)
 	{
@@ -84,7 +82,7 @@ public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeF
 			_writer.Append(" ponder ").Append(pm.ToUciString());
 		}
 
-		_writer.AppendLine().Flush();
+		_writer.AppendLine().Write();
 	}
 
 	public void Info(UciInfoParameters infoParameters)
@@ -179,7 +177,7 @@ public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeF
 			_writer.Append(" string ").Append(infoParameters.String);
 		}
 
-		_writer.AppendLine().Flush();
+		_writer.AppendLine().Write();
 	}
 
 	public void Option(UciOption option)
@@ -208,6 +206,6 @@ public sealed class UciEngineOutputWriter(UciEngineOutputWriter.WriteFunc writeF
 			foreach (var v in option.Vars)
 				_writer.Append(" var ").Append(v);
 
-		_writer.AppendLine().Flush();
+		_writer.AppendLine().Write();
 	}
 }

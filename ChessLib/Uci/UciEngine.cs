@@ -31,7 +31,7 @@ public abstract class UciEngine(IUciUserInterface userInterface) : IUciEngine
 
 	void IUciEngine.UciNewGame() => OnNewGame();
 
-	void IUciEngine.Position(bool startPosition, string? fen, IReadOnlyList<BoardMove> moves) => OnPosition(fen, moves);
+	void IUciEngine.Position(bool startPosition, string? fen, IReadOnlyList<BoardMove> moves) => OnPosition(startPosition, fen, moves);
 
 	void IUciEngine.Go(UciGoParameters parameters) => OnGo(parameters);
 
@@ -44,7 +44,7 @@ public abstract class UciEngine(IUciUserInterface userInterface) : IUciEngine
 	protected virtual void OnIsDebugChanged(bool isDebug) { }
 	protected virtual void OnSetOption(string name, string? value) { }
 	protected virtual void OnNewGame() { }
-	protected virtual void OnPosition(string? fen, IReadOnlyList<BoardMove> moves) { }
+	protected virtual void OnPosition(bool startPosition, string? fen, IReadOnlyList<BoardMove> moves) { }
 	protected virtual void OnGo(UciGoParameters parameters) { }
 	protected virtual void OnStop() { }
 	protected virtual void OnPonderHit() { }
